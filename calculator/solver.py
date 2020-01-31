@@ -1,43 +1,110 @@
-from calculator.solver_enums import SolverKind, Steps
+from calculator.solver_enums import Poly2Delta, Poly2Square, Poly2Decompose
 
 
-class Solver:
+class PublicMath:
+    @staticmethod
+    def float2int(n, f=2):
+        if n == int(n):
+            return int(n)
+        return round(n, f)
+
+class Poly1:
     def __init__(self, params):
         self.params = params
-        kind = params.get('kind')
-        if not kind:
-            kind = SolverKind.polynomial2.value
-        if kind == SolverKind.polynomial2.value:
-            self.solver = self.polynomial2_solver
-        elif kind == SolverKind.polynomial1.value:
-            self.solver = self.polynomial1_solver
-        else:
-            raise Exception("Invalid kind")
 
-    def polynomial1_solver(self):
+    def solve(self):
+        a, b, c = self.params["coeffs"]
         return {"s": 1}
 
-    def polynomial2_solver(self):
-        a, b, c = self.params["coeffs"]
+
+class Poly2:
+    def __init__(self, params):
+        self.a, self.b, self.c = params["coeffs"]
+        self.delta = self.b ** 2 - 4 * self.a * self.c
+        if self.delta > 0:
+            self.rdelta = PublicMath.float2int(self.delta**.5)
+        else:
+            self.rdelta = 0
+        self.solutions = {
+            "delta": {
+                "name": Poly2Delta.name.value,
+                "solver": self.delta_solver,
+            },
+            "square": {
+                "name": Poly2Square.name.value,
+                "solver": self.square_solver,
+            },
+            "decompose": {
+                "name": Poly2Decompose.name.value,
+                "solver": self.decompose_solver,
+            }
+        }
+
+    def solve(self):
+        solutions = {}
+        for method, solution in self.solutions.items():
+            solution_steps = solution["solver"]()
+            if solution_steps:
+                solutions[method] = {
+                    "name": solution["name"],
+                    "steps": solution_steps
+                }
+        return solutions
+
+    def delta_solver(self):
         steps = []
-        delta = b ** 2 - 4 * a * c
         steps.append({
-            "pre": Steps.pre_delta.value,
-            "formula": ["Delta = b^2 - 4ac"],
-            "code": Steps.delta_calculation_code.value,
+            "pre": Poly2Delta.pre_delta.value,
+            "formula": [
+                "delta = b^2 - 4ac",
+                "delta = ({})^2 - 4({})({})".format(self.b, self.a, self.c),
+                "delta = {} ".format(self.b ** 2) + (
+                    "+ " if self.a * self.c < 0 else "- " + "{}".format(4 * self.a * self.c))
+            ],
+            "code": Poly2Delta.delta_calculation_code.value,
         })
-        if delta < 0:
+        if self.delta < 0:
             steps.append({
-                "post": Steps.negative_delta.value,
-                "formula": ["delta = {} < 0".format(delta)]
+                "post": Poly2Delta.negative_delta.value,
+                "formula": ["delta = {} < 0".format(self.delta)]
             })
-        elif delta == 0:
+        elif self.delta == 0:
             steps.append({
-                "post": Steps.zero_delta.value,
+                "post": Poly2Delta.zero_delta.value,
                 "formula": ["delta = 0"],
+            })
+            steps.append({
+                "formula": [
+                    "x1, x2 = (-({}) +- r^{})/2({})".format(self.b, self.delta, self.a),
+                    "x1, x2 = {}/{}".format(-self.b, 2 * self.a),
+                    "x1, x2 = {}".format(PublicMath.float2int(-self.b / 2 * self.a)),
+                ],
             })
         else:
             steps.append({
-                "pre": Steps.positive_delta.value,
+                "post": Poly2Delta.positive_delta.value,
+                "formula": ["delta = {} > 0".format(self.delta)]
             })
-        return {"steps": steps}
+            steps.append({
+                "formula": [
+                    "x1 = (-({}) + r^{})/2({})".format(self.b, self.delta, self.a),
+                    "x1 = ({} + {})/{}".format(-self.b, self.rdelta, 2 * self.a),
+                    "x1 = {}/{}".format(-self.b + self.rdelta, 2 * self.a),
+                    "x1 = {}".format(PublicMath.float2int((-self.b + self.rdelta) / 2 * self.a)),
+                ]
+            })
+            steps.append({
+                "formula": [
+                    "x2 = (-({}) - r^{})/2({})".format(self.b, self.delta, self.a),
+                    "x2 = ({} - {})/{}".format(-self.b, self.rdelta, 2 * self.a),
+                    "x2 = {}/{}".format(-self.b - self.rdelta, 2 * self.a),
+                    "x2 = {}".format(PublicMath.float2int((-self.b - self.rdelta) / 2 * self.a)),
+                ]
+            })
+        return steps
+
+    def square_solver(self):
+        return [2]
+
+    def decompose_solver(self):
+        return [22]

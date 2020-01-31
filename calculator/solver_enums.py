@@ -6,7 +6,8 @@ class SolverKind(Enum, settings=NoAlias):
     polynomial1 = 1
 
 
-class Steps(Enum, settings=NoAlias):
+class Poly2Delta(Enum, settings=NoAlias):
+    name = "دلتا"
     delta_calculation_code = 0
     pre_delta = "محاسبه دلتا"
     negative_delta = "دلتا  منفی است، پس معادله جواب ندارد"
@@ -15,3 +16,11 @@ class Steps(Enum, settings=NoAlias):
     zero_delta_code = 1
     positive_delta = "دلتا مثبت است پس معادله دو ریشه دارد"
     positive_delta_code = 2
+
+
+class Poly2Square(Enum, settings=NoAlias):
+    name = "مربع کامل"
+
+
+class Poly2Decompose(Enum, settings=NoAlias):
+    name = "تجزیه"
