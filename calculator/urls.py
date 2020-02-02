@@ -1,6 +1,7 @@
 from django.conf.urls import url
-from calculator.views import solve
+from calculator import views
 
 urlpatterns = [
-    url('solve', solve),
+    url('solve', views.solve),
+    url('poly2', views.Poly2View.as_view()),
 ]

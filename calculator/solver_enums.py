@@ -6,6 +6,27 @@ class SolverKind(Enum, settings=NoAlias):
     polynomial1 = 1
 
 
+class MathSymbols(Enum):
+    delta = "\Delta"
+    radical = "\sqrt"
+    fraction = "\over"
+    plum_minus = "\pm"
+    then = "\Rightarrow "
+    start_statement = "\("
+    end_statement = "\)"
+    start_line = "\["
+    end_line = "\]"
+
+
+class EquationStates(Enum):
+    impossible = "غیر ممکن است، پس معادله جواب ندارد"
+    trivial = "تساوی بدیهی"
+
+
+class Poly2States(Enum):
+    poly1 = "تبدیل به درجه یک"
+
+
 class Poly2Delta(Enum, settings=NoAlias):
     name = "دلتا"
     delta_calculation_code = 0

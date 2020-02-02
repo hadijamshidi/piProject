@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>حل درجه دو</title>
+    {#    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>#}
+    {#    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>#}
+    <script id="MathJax-script" src="{% static "js/jquery-3.4.1.js" %}"></script>
+    {#    <script type="text/x-mathjax-config">#}
+    {#        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});#}
+    {##}
+    {##}
+    {#    </script>#}
+    {#    <script type="text/javascript"#}
+    {#            src="http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">#}
+    {#    </script>#}
+    {#    <script id="MathJax-script" async src="{% static "js/tex-mml-chtml.js" %}"></script>#}
+    {#  <script type="text/javascript"#}
+    {#  src="https://www.maths.nottingham.ac.uk/plp/pmadw/LaTeXMathML.js">#}
+    {#  </script>#}
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+            src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML">
+    </script>
+    <script id="MathJax-script" src="{% static "js/calculator/poly2.js" %}"></script>
+    <script>
+        function f() {
+            let div = document.getElementById("div");
+            forms = ["\\[ x = a \\]", "\\[ x = c \\]", "\\[ \\Delta = a \\]"];
+            forms.forEach(function (form) {
+                let p = document.createElement('P');
+                p.innerHTML = form;
+                div.appendChild(p);
+            });
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+        }
+    </script>
+</head>
+<body>
+{#extensions: ["TeX/AMSmath.js", "TeX/AMSsymbol.js", ...]#}
+<div>
+    When \(a \ne 0\), \Delta there are two solutions to \(ax^2 + bx + c = 0\) and they are
+    \[{x}_1, y^3 = {-b \pm \sqrt{b^2-4ac} \over 2a} \]
+</div>
+<div id="div">
+</div>
+{#<script>f()</script>#}
+<div id="solution"></div>
+</body>
+</html>
