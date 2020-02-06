@@ -1,4 +1,5 @@
-from calculator.solver_enums import *
+from pi.solver_enums import *
+import numpy as np
 
 
 class PublicMath:
@@ -61,14 +62,15 @@ class Poly1:
             return steps
         steps.append({
             "formula": PublicMath.format_formula([
-                "{}x = -({}) = {}".format(self.a_str, self.b, -self.b) if not self.b == 0 else "{}x = 0".format(self.a_str),
+                "{}x = -({}) = {}".format(self.a_str, self.b, -self.b) if not self.b == 0 else "{}x = 0".format(
+                    self.a_str),
                 "x = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, self.a) + "}",
             ])
         })
         if int(self.b / self.a) == (self.b / self.a):
             steps.append({
                 "formula": PublicMath.format_formula(
-                    "x = {}".format(int(-self.b/self.a)),
+                    "x = {}".format(int(-self.b / self.a)),
                 )
             })
         return steps
@@ -240,3 +242,16 @@ class Poly2:
 
     def decompose_solver(self):
         return []
+
+    @staticmethod
+    def generate(level=GameLevel.simple.value):
+        choice_list = [_ for _ in range(-9, 10, 1)]
+        a_list = [_ for _ in range(1, 6)] + [-_ for _ in range(1, 6)]
+        x1, x2 = np.random.choice(choice_list, 2)
+        x1, x2 = int(x1), int(x2)
+        a, b, c = 1, x1 + x2, x1 * x2
+        if not level == GameLevel.simple.value:
+            a = int(np.random.choice(a_list))
+            b *= a
+            c *= a
+        return {"coeffs": [a, b, c], "solution": [-x1, -x2]}

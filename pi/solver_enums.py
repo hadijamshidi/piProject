@@ -1,9 +1,13 @@
 from aenum import Enum, NoAlias
 
 
-class SolverKind(Enum, settings=NoAlias):
+class PolyKind(Enum, settings=NoAlias):
     polynomial2 = 2
     polynomial1 = 1
+
+
+class GameLevel(Enum):
+    simple = 1
 
 
 class MathSymbols(Enum):

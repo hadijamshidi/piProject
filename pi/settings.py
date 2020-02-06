@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    # 'oauth2_provider',
+    'gaming',
     'pioauth',
     'calculator',
 ]
