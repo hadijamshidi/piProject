@@ -30,6 +30,10 @@ class PublicMath:
         else:
             return "+{}".format(n) if n >= 0 else str(n)
 
+    @staticmethod
+    def is_int(n):
+        return n == int(n)
+
 
 class Poly1:
     def __init__(self, params):
@@ -102,6 +106,24 @@ class Poly2:
                 "solver": self.decompose_solver,
             }
         }
+
+    def analyze(self):
+        delta = -1
+        x1, x2 = 0, 0
+        if self.delta == 0:
+            delta = 0
+            x1 = (-self.b + self.rdelta) / (2 * self.a)
+            x2 = x1
+        if self.delta > 0:
+            x1 = (-self.b + self.rdelta) / (2 * self.a)
+            x2 = (-self.b - self.rdelta) / (2 * self.a)
+            if PublicMath.is_int(x1) and PublicMath.is_int(x2):
+                x1 = int(x1)
+                x2 = int(x2)
+                delta = 2
+            else:
+                delta = 1
+        return {"delta": delta, "x1": x1, "x2": x2}
 
     def solve(self):
         solutions = {}
@@ -238,10 +260,132 @@ class Poly2:
         return steps
 
     def square_solver(self):
-        return []
+        steps = []
+        if self.a < 0:
+            steps.append({
+                "pre": Poly2Square.negative_a.value,
+                "formula": PublicMath.format_formula([
+                    "-({}x^2 {}x {}) = -(0)".format(self.a_str, self.b_str, self.c_str),
+                ])
+            })
+            steps += Poly2(params={"coeffs": [-self.a, -self.b, -self.c]}).square_solver()
+            return steps
+        if not self.a ** .5 == int(self.a ** .5):
+            steps.append({
+                "pre": Poly2Square.multiple_a.value,
+                "formula": "{}({}x^2 {}x {}) = {}(0)".format(self.a, self.a_str, self.b_str, self.c_str, self.a),
+            })
+            steps += Poly2(params={"coeffs": [self.a ** 2, self.a * self.b, self.a * self.c]}).square_solver()
+            return steps
+        ra = int(self.a ** .5)
+        c_b2 = -int(4 * self.c - self.b ** 2)
+        steps.append({
+            "pre": Poly2Square.multiple4.value,
+            "formula": PublicMath.format_formula([
+                "4({}x^2 {}x {}) = 4(0)".format(self.a_str, self.b_str, self.c_str),
+                "({}x)^2 + 2 ({}x)({}) {} = 0".format(2 * ra, 2 * ra, self.b, self.c_str),
+                "({}x)^2 + 2 ({}x)({}) + ({})^2 - ({})^2 {} = 0".format(2 * ra, 2 * ra, self.b, self.b, self.b,
+                                                                        self.c_str),
+                "({}x + {})^2 {} = 0".format(2 * ra, self.b, PublicMath.n2str(-c_b2)),
+                "({}x {})^2 = ".format(2 * ra, self.b_str) + ("0" if c_b2 == 0 else str(c_b2)),
+            ])
+        })
+        if c_b2 < 0:
+            steps.append({
+                "post": EquationStates.impossible.value
+            })
+            return steps
+        if c_b2 == 0:
+            steps.append({
+                "formula": PublicMath.format_formula([
+                    "{}x {} = {}0".format(2 * ra, self.b_str, MathSymbols.plum_minus.value),
+                    "{}x = {}".format(2 * ra, PublicMath.n2str(-self.b)),
+                    "x_1, x_2 = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, 2 * ra) + "}",
+                ])
+            })
+            if int(self.b / (2 * self.a)) == self.b / (2 * self.a):
+                steps.append({
+                    "formula": PublicMath.format_formula([
+                        "x_1, x_2 = {}".format(int(-self.b / (2 * ra))),
+                    ])
+                })
+            return steps
+        steps.append({
+            "formula": PublicMath.format_formula([
+                "{}x {} = {}{}".format(2 * ra, self.b_str, MathSymbols.plum_minus.value,
+                                       MathSymbols.radical.value) + "{" + str(c_b2) + "}",
+            ])
+        })
+        if PublicMath.is_int(c_b2 ** .5):
+            rc_b2 = int(c_b2 ** .5)
+            steps.append({
+                "formula": PublicMath.format_formula([
+                    "{}x {} = {}{}".format(2 * ra, self.b_str, MathSymbols.plum_minus.value, rc_b2),
+                ]),
+                "parr": [
+                    PublicMath.format_formula([
+                        "{}x_1 = {} - ({})".format(2 * ra, rc_b2, self.b),
+                        "{}x_2 = -{} - ({})".format(2 * ra, rc_b2, self.b),
+                    ]),
+                    PublicMath.format_formula([
+                        "{}x_1 = {}".format(2 * ra, rc_b2 - self.b),
+                        "{}x_2 = {}".format(2 * ra, -rc_b2 - self.b),
+                    ]),
+                    PublicMath.format_formula([
+                        "x_1 = {" + "{}{}{}".format(rc_b2 - self.b, MathSymbols.fraction.value, 2 * ra) + "}",
+                        "x_2 = {" + "{}{}{}".format(-rc_b2 - self.b, MathSymbols.fraction.value, 2 * ra) + "}",
+                    ]),
+                ]
+            })
+            # TODO: simplify last ...
+            return steps
+        else:
+            # TODO: complete for ...
+            pass
+        return steps
 
     def decompose_solver(self):
-        return []
+        analysis = self.analyze()
+        steps = []
+        if not analysis["delta"] == 2:
+            return steps
+        if not self.a == 1:
+            steps.append({
+                "pre": Poly2Decompose.devide_a.value,
+                "formula": PublicMath.format_formula(
+                    "{" + "{}x^2 {}x {} = 0 {} {}".format(self.a_str, self.b_str, self.c_str,
+                                                          MathSymbols.fraction.value, self.a) + "}",
+                )
+            })
+            steps += Poly2(params={"coeffs": [1, int(self.b / self.a), int(self.c / self.a)]}).decompose_solver()
+            return steps
+        steps.append({
+            "pre": Poly2Decompose.looking.value.format(self.b, self.c)
+        })
+        x1, x2 = analysis["x1"], analysis["x2"]
+        steps.append({
+            "pre": Poly2Decompose.finding.value.format(-x1, -x2)
+        })
+        steps.append({
+            "formula": PublicMath.format_formula([
+                "{}x^2 {}x {} = 0".format(self.a_str, self.b_str, self.c_str),
+                "(x {})(x {}) = 0".format(PublicMath.n2str(-x1), PublicMath.n2str(-x2))
+            ]),
+            "post": Poly2Decompose.zero_equal.value
+        })
+        steps.append({
+            "parr": [
+                PublicMath.format_formula([
+                    "x {}= 0".format(PublicMath.n2str(-x1)),
+                    "x {}= 0".format(PublicMath.n2str(-x2)),
+                ]),
+                PublicMath.format_formula([
+                    "x_1 = {}".format(PublicMath.n2str(x1)),
+                    "x_2 = {}".format(PublicMath.n2str(x2)),
+                ]),
+            ]
+        })
+        return steps
 
     @staticmethod
     def generate(level=GameLevel.simple.value):
