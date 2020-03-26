@@ -47,7 +47,7 @@ class Poly2Square(Enum, settings=NoAlias):
     name = "مربع کامل"
     negative_a = "طرفین تساوی را در منفی ضرب می‌کنیم"
     multiple4 = "طرفین را ضرب در ۴ می‌کنیم"
-    multiple_a = "طریفین را در ظریب جمله درجه دو ظرب می‌کنیم تا مربع کامل شود"
+    multiple_a = "طریفین را در ضریب جمله درجه دو ضرب می‌کنیم تا مربع کامل شود"
 
 class Poly2Decompose(Enum, settings=NoAlias):
     name = "تجزیه"

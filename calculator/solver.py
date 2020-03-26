@@ -294,7 +294,9 @@ class Poly2:
         if not self.a ** .5 == int(self.a ** .5):
             steps.append({
                 "pre": Poly2Square.multiple_a.value,
-                "formula": "{}({}x^2 {}x {}) = {}(0)".format(self.a, self.a_str, self.b_str, self.c_str, self.a),
+                "formula": PublicMath.format_formula([
+                    "{}({}x^2 {}x {}) = {}(0)".format(self.a, self.a_str, self.b_str, self.c_str, self.a),
+                ])
             })
             steps += Poly2(params={"coeffs": [self.a ** 2, self.a * self.b, self.a * self.c]}).square_solver()
             return steps
