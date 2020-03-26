@@ -3,5 +3,4 @@ from calculator import views
 
 urlpatterns = [
     url('solve', views.solve),
-    url('poly2', views.Poly2View.as_view()),
 ]

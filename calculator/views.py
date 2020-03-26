@@ -1,19 +1,15 @@
 from django.http import JsonResponse
-import json
 from pi.solver_enums import PolyKind
 from calculator.solver import Poly2, Poly1
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView
 
 
-@csrf_exempt
 def solve(request):
     try:
-        if not request.method == 'POST':
-            raise Exception("USE POST")
-        body = request.body.decode('utf-8')
-        params = json.loads(body)
-        kind = params.get('kind')
+        a = int(request.GET.get('a', 0))
+        b = int(request.GET.get('b', 0))
+        c = int(request.GET.get('c', 0))
+        kind = request.GET.get('kind', None)
+        params = {"coeffs": [a, b, c]}
         if not kind:
             kind = PolyKind.polynomial2.value
         if kind == PolyKind.polynomial2.value:
@@ -26,7 +22,3 @@ def solve(request):
         return JsonResponse(solutions)
     except Exception as e:
         return JsonResponse({"e": str(e)}, status=400)
-
-
-class Poly2View(TemplateView):
-    template_name = "calculator/poly2.html"
