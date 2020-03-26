@@ -1,5 +1,6 @@
 from pi.solver_enums import *
 import numpy as np
+import json
 
 
 class PublicMath:
@@ -10,15 +11,35 @@ class PublicMath:
         return round(n, f)
 
     @staticmethod
+    def make_persian(data_str, active=False):
+        if not active:
+            return data_str
+        eng2per = {
+            '0': '۰',
+            '1': '۱',
+            '2': '۲',
+            '3': '۳',
+            '4': '۴',
+            '5': '۵',
+            '6': '۶',
+            '7': '۷',
+            '8': '۸',
+            '9': '۹',
+        }
+        for eng_num, per_num in eng2per.items():
+            data_str = data_str.replace(eng_num, per_num)
+        return data_str
+
+    @staticmethod
     def format_formula(formula, horiz=False, then=True):
         if isinstance(formula, str):
-            formula = [formula]
+            formula = [PublicMath.make_persian(formula)]
         then_str = MathSymbols.then.value if then else ""
-        formatted_formula = [MathSymbols.start_statement.value + then_str + formula[
-            0] + MathSymbols.end_statement.value]
+        formatted_formula = [MathSymbols.start_statement.value + then_str + PublicMath.make_persian(formula[
+            0]) + MathSymbols.end_statement.value]
         for step in formula[1:]:
             formatted_formula.append(
-                MathSymbols.start_statement.value + MathSymbols.then.value + step + MathSymbols.end_statement.value)
+                MathSymbols.start_statement.value + MathSymbols.then.value + PublicMath.make_persian(step) + MathSymbols.end_statement.value)
         if horiz:
             return ["".join(formatted_formula)]
         return formatted_formula
