@@ -35,11 +35,16 @@ class PublicMath:
         if isinstance(formula, str):
             formula = [PublicMath.make_persian(formula)]
         then_str = MathSymbols.then.value if then else ""
-        formatted_formula = [MathSymbols.start_statement.value + then_str + PublicMath.make_persian(formula[
-            0]) + MathSymbols.end_statement.value]
-        for step in formula[1:]:
+        # formatted_formula = [MathSymbols.start_statement.value + then_str + PublicMath.make_persian(formula[
+        #                                                                                                 0]) + MathSymbols.end_statement.value]
+        formatted_formula = []
+        for step in formula:
+            if not step:
+                formatted_formula.append("")
+                continue
             formatted_formula.append(
-                MathSymbols.start_statement.value + MathSymbols.then.value + PublicMath.make_persian(step) + MathSymbols.end_statement.value)
+                MathSymbols.start_statement.value + MathSymbols.then.value + PublicMath.make_persian(
+                    step) + MathSymbols.end_statement.value)
         if horiz:
             return ["".join(formatted_formula)]
         return formatted_formula
@@ -114,19 +119,30 @@ class Poly2:
         else:
             self.rdelta = 0
         self.solutions = {
+            # "simple": {
+            #     "name": Poly2Simple.name.value,
+            #     "solver": self.simple_solver,
+            # },
+            "decompose": {
+                "name": Poly2Decompose.name.value,
+                "solver": self.decompose_solver,
+            },
             "delta": {
                 "name": Poly2Delta.name.value,
                 "solver": self.delta_solver,
             },
-            "square": {
-                "name": Poly2Square.name.value,
-                "solver": self.square_solver,
-            },
-            "decompose": {
-                "name": Poly2Decompose.name.value,
-                "solver": self.decompose_solver,
-            }
+            # "square": {
+            #     "name": Poly2Square.name.value,
+            #     "solver": self.square_solver,
+            # },
         }
+
+    def __str__(self):
+        eq = "{}x^2 ".format(self.a_str)
+        eq += "{}x ".format(self.b_str) if self.b != 0 else ""
+        eq += "{} ".format(self.c_str) if self.c != 0 else ""
+        eq += "= 0"
+        return eq
 
     def analyze(self):
         delta = -1
@@ -135,6 +151,10 @@ class Poly2:
             delta = 0
             x1 = (-self.b + self.rdelta) / (2 * self.a)
             x2 = x1
+            if PublicMath.is_int(x1) and PublicMath.is_int(x2):
+                x1 = int(x1)
+                x2 = int(x2)
+                delta = 3
         if self.delta > 0:
             x1 = (-self.b + self.rdelta) / (2 * self.a)
             x2 = (-self.b - self.rdelta) / (2 * self.a)
@@ -213,7 +233,7 @@ class Poly2:
                     "x_1, x_2 = " + "{" + "-({}) \pm {}".format(self.b, MathSymbols.radical.value) + "{" + str(
                         self.delta) + "}" + "{}2({})".format(MathSymbols.fraction.value, self.a) + "}",
                     "x_1, x_2 = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, 2 * self.a) + "}",
-                    "x_1, x_2 = {}".format(PublicMath.float2int(-self.b / 2 * self.a)),
+                    "x_1, x_2 = {}".format(PublicMath.float2int(-self.b / (2 * self.a))),
                 ]),
             })
         else:
@@ -273,8 +293,8 @@ class Poly2:
                                                          2 * self.a) + "}",
                     ]),
                     PublicMath.format_formula([
-                        "x_1 = {}".format(PublicMath.float2int((-self.b + self.rdelta) / 2 * self.a)),
-                        "x_2 = {}".format(PublicMath.float2int((-self.b - self.rdelta) / 2 * self.a)),
+                        "x_1 = {}".format(PublicMath.float2int((-self.b + self.rdelta) / (2 * self.a))),
+                        "x_2 = {}".format(PublicMath.float2int((-self.b - self.rdelta) / (2 * self.a))),
                     ]),
                 ]
             })
@@ -369,9 +389,83 @@ class Poly2:
 
     def decompose_solver(self):
         analysis = self.analyze()
-        steps = []
-        if not analysis["delta"] == 2:
+        steps = [{
+            "formula": PublicMath.format_formula(self.__str__()),
+        }]
+        if self.c == 0:
+            if self.b != 0:
+                parr = [
+                    PublicMath.format_formula([
+                        "x = 0",
+                        "{}x {} = 0".format(self.a_str, self.b_str),
+                    ]),
+                    PublicMath.format_formula([
+                        "x_1 = 0",
+                        "{}x_2 = {}".format(self.a_str, -self.b),
+                    ]),
+                ]
+                if self.a != 1:
+                    bfa = ("=" + str(int(-self.b / self.a))) if int(-self.b / self.a) == -self.b / self.a else ""
+                    parr.append(PublicMath.format_formula([
+                        "",
+                        "x_2 = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, self.a) + "}" + bfa,
+                    ])
+                    )
+                steps.append({
+                    "pre": "از {} فاکتور می‌گیریم".format("\(x\)"),
+                    "formula": PublicMath.format_formula(
+                        "{" + "x({}x {}x) = 0 ".format(self.a_str, self.b_str) + "}",
+                    ),
+                    "post": "پس یا {} مساوی صفر هست یا پرانتز دوم".format("\(x\)"),
+                })
+                steps.append({
+                    "parr": parr
+                })
+            else:
+                steps.append({
+                    "formula": [
+                        PublicMath.format_formula("x^2 = 0"),
+                        PublicMath.format_formula(
+                            "x_1,x_2 = {}{}0 = 0".format(MathSymbols.plum_minus.value, MathSymbols.radical.value)),
+                    ],
+                })
             return steps
+        if self.b == 0:
+            formula = [
+                PublicMath.format_formula("{}x^2 = {}".format(self.a_str, -self.c))
+            ]
+            mcfa = -self.c
+            if self.a != 1:
+                mcfa = "{" + "{}{}{}".format(-self.c, MathSymbols.fraction.value, self.a_str) + "}"
+                mcfasim = False
+                if int(-self.c / self.a) == -self.c / self.a:
+                    mcfa = int(-self.c / self.a)
+                    mcfasim = True
+                formula.append(
+                    PublicMath.format_formula(
+                        "x^2 = {" + "{}{}{}".format(-self.c, MathSymbols.fraction.value, self.a_str) + "}" + (
+                            "= {}".format(mcfa) if mcfasim else ""))
+                )
+            if -self.c / self.a > 0:
+                formula.append(
+                    PublicMath.format_formula(
+                        "x_1,x_2 = {}{}{}".format(MathSymbols.plum_minus.value, MathSymbols.radical.value, mcfa))
+                )
+                post = None
+            else:
+                formula.append(
+                    PublicMath.format_formula("x^2 = {} < 0".format(mcfa))
+                )
+                post = EquationStates.impossible.value
+            step = {
+                "formula": formula
+            }
+            if post:
+                step["post"] = post
+            steps.append(step)
+            return steps
+        if analysis["delta"] not in [2, 3]:
+            return []
         if not self.a == 1:
             steps.append({
                 "pre": Poly2Decompose.devide_a.value,
@@ -381,6 +475,18 @@ class Poly2:
                 )
             })
             steps += Poly2(params={"coeffs": [1, int(self.b / self.a), int(self.c / self.a)]}).decompose_solver()
+            return steps
+        if (self.b / 2) ** 2 == self.c:
+            rc = int(self.c ** .5) if self.b > 0 else -int(self.c ** .5)
+            rc_str = "+ {}".format(rc) if rc > 0 else str(rc)
+            steps.append({
+                "pre": Poly2Decompose.num1U.value if self.b > 0 else Poly2Decompose.num1Um.value,
+                "formula": [
+                    PublicMath.format_formula("(x {})^2=0".format(rc_str)),
+                    PublicMath.format_formula("x {}=0".format(rc_str)),
+                    PublicMath.format_formula("x_1, x_2 = {}".format(-rc)),
+                ],
+            })
             return steps
         steps.append({
             "pre": Poly2Decompose.looking.value.format(self.b, self.c)

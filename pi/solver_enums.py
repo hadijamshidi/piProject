@@ -23,35 +23,42 @@ class MathSymbols(Enum):
 
 
 class EquationStates(Enum):
-    impossible = "غیر ممکن است، پس معادله جواب ندارد"
-    trivial = "تساوی بدیهی"
+    impossible = "غیر ممکن است، پس معادله جواب ندارد."
+    trivial = "تساوی بدیهی!"
 
 
 class Poly2States(Enum):
-    poly1 = "تبدیل به درجه یک"
+    poly1 = "تبدیل به درجه ۱"
 
 
 class Poly2Delta(Enum, settings=NoAlias):
     name = "دلتا"
     delta_calculation_code = 0
-    pre_delta = "محاسبه دلتا"
-    negative_delta = "دلتا  منفی است، پس معادله جواب ندارد"
+    pre_delta = "محاسبه دلتا:"
+    negative_delta = "دلتا  منفی است، پس معادله جواب ندارد."
     negative_delta_code = -1
-    zero_delta = "دلتا مساوی صفر است، پس معادله ریشه مضاعف دارد"
+    zero_delta = "دلتا مساوی صفر است، پس معادله ریشه مضاعف دارد:"
     zero_delta_code = 1
-    positive_delta = "دلتا مثبت است پس معادله دو ریشه دارد"
+    positive_delta = "دلتا مثبت است پس معادله دو ریشه دارد:"
     positive_delta_code = 2
 
 
 class Poly2Square(Enum, settings=NoAlias):
     name = "مربع کامل"
-    negative_a = "طرفین تساوی را در منفی ضرب می‌کنیم"
-    multiple4 = "طرفین را ضرب در ۴ می‌کنیم"
-    multiple_a = "طریفین را در ضریب جمله درجه دو ضرب می‌کنیم تا مربع کامل شود"
+    negative_a = "طرفین تساوی را در منفی ضرب می‌کنیم:"
+    multiple4 = "طرفین را ضرب در ۴ می‌کنیم:"
+    multiple_a = "طریفین را در ضریب جمله درجه دو ضرب می‌کنیم تا مربع کامل شود:"
+
 
 class Poly2Decompose(Enum, settings=NoAlias):
-    name = "تجزیه"
-    devide_a = "طرفین را تقسیم بر ضریب جمله درجه دو می کنیم"
-    looking = "دو عدد می‌خواهیم که مجموع آنها {} و حاصلضرب آنها {} باشد"
-    finding = "آن دو عدد {} و {} هستند"
-    zero_equal = "هر دو پرانتز را مساوی سفر قرار می‌دهیم"
+    name = "راه ساده"
+    devide_a = "طرفین را تقسیم بر ضریب جمله درجه دو می کنیم:"
+    looking = "تجزیه، دو عدد می‌خواهیم که مجموع آنها {} و حاصلضرب آنها {} باشد،"
+    finding = "آن دو عدد {} و {} هستند."
+    zero_equal = "هر دو پرانتز را مساوی صفر قرار می‌دهیم:"
+    num1U = "تجزیه، اتحاد اول:"
+    num1Um = "تجزیه، اتحاد اول (فرعی):"
+
+
+class Poly2Simple(Enum, settings=NoAlias):
+    name = "راه ساده"
