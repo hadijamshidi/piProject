@@ -1,6 +1,6 @@
 from pi.solver_enums import *
 import numpy as np
-import json
+import math
 
 
 class PublicMath:
@@ -9,6 +9,28 @@ class PublicMath:
         if n == int(n):
             return int(n)
         return round(n, f)
+
+    @staticmethod
+    def simplify_fraction(sorat, makhraj):
+        gcd = PublicMath.gcd(sorat, makhraj)
+        if gcd > 1:
+            sorat = int(sorat / gcd)
+            makhraj = int(makhraj / gcd)
+        result = "" if sorat * makhraj > 0 else "-"
+        sorat = abs(sorat)
+        makhraj = abs(makhraj)
+        if makhraj > 1:
+            result += "{" + "{}{}{}".format(sorat, MathSymbols.fraction.value, makhraj) + "}"
+        else:
+            result += "{}".format(sorat)
+        return result
+
+    @staticmethod
+    def gcd(a, b, c=None):
+        ab = math.gcd(a, b)
+        if c:
+            return math.gcd(ab, c)
+        return ab
 
     @staticmethod
     def make_persian(data_str, active=False):
@@ -52,7 +74,7 @@ class PublicMath:
     @staticmethod
     def n2str(n, a=False):
         if a:
-            return "" if n == 1 else str(n)
+            return "" if n == 1 else "-" if n == -1 else str(n)
         else:
             return "+{}".format(n) if n >= 0 else str(n)
 
@@ -233,7 +255,7 @@ class Poly2:
                     "x_1, x_2 = " + "{" + "-({}) \pm {}".format(self.b, MathSymbols.radical.value) + "{" + str(
                         self.delta) + "}" + "{}2({})".format(MathSymbols.fraction.value, self.a) + "}",
                     "x_1, x_2 = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, 2 * self.a) + "}",
-                    "x_1, x_2 = {}".format(PublicMath.float2int(-self.b / (2 * self.a))),
+                    "x_1, x_2 = {}".format(PublicMath.simplify_fraction(-self.b, 2 * self.a)),
                 ]),
             })
         else:
@@ -278,25 +300,26 @@ class Poly2:
                         MathSymbols.fraction.value, 2 * self.a) + "}"
                 ])
             })
+            parr = [
+                PublicMath.format_formula([
+                    "x_1 = " + "{" + "{} + {}".format(-self.b, self.rdelta) + "{}{}".format(
+                        MathSymbols.fraction.value, 2 * self.a) + "}",
+                    "x_2 = " + "{" + "{} - {}".format(-self.b, self.rdelta) + "{}{}".format(
+                        MathSymbols.fraction.value, 2 * self.a) + "}"
+                ]),
+                PublicMath.format_formula([
+                    "x_1 = " + "{" + "{}{}{}".format(-self.b + self.rdelta, MathSymbols.fraction.value,
+                                                     2 * self.a) + "}",
+                    "x_2 = " + "{" + "{}{}{}".format(-self.b - self.rdelta, MathSymbols.fraction.value,
+                                                     2 * self.a) + "}",
+                ]),
+                PublicMath.format_formula([
+                    "x_1 = {}".format(PublicMath.simplify_fraction(-self.b + self.rdelta, 2 * self.a)),
+                    "x_2 = {}".format(PublicMath.simplify_fraction(-self.b - self.rdelta, 2 * self.a)),
+                ]),
+            ]
             steps.append({
-                "parr": [
-                    PublicMath.format_formula([
-                        "x_1 = " + "{" + "{} + {}".format(-self.b, self.rdelta) + "{}{}".format(
-                            MathSymbols.fraction.value, 2 * self.a) + "}",
-                        "x_2 = " + "{" + "{} - {}".format(-self.b, self.rdelta) + "{}{}".format(
-                            MathSymbols.fraction.value, 2 * self.a) + "}"
-                    ]),
-                    PublicMath.format_formula([
-                        "x_1 = " + "{" + "{}{}{}".format(-self.b + self.rdelta, MathSymbols.fraction.value,
-                                                         2 * self.a) + "}",
-                        "x_2 = " + "{" + "{}{}{}".format(-self.b - self.rdelta, MathSymbols.fraction.value,
-                                                         2 * self.a) + "}",
-                    ]),
-                    PublicMath.format_formula([
-                        "x_1 = {}".format(PublicMath.float2int((-self.b + self.rdelta) / (2 * self.a))),
-                        "x_2 = {}".format(PublicMath.float2int((-self.b - self.rdelta) / (2 * self.a))),
-                    ]),
-                ]
+                "parr": parr
             })
         return steps
 
@@ -405,7 +428,7 @@ class Poly2:
                     ]),
                 ]
                 if self.a != 1:
-                    bfa = ("=" + str(int(-self.b / self.a))) if int(-self.b / self.a) == -self.b / self.a else ""
+                    bfa = ("=" + PublicMath.simplify_fraction(-self.b, self.a)) if PublicMath.is_int(-self.b / self.a) else ""
                     parr.append(PublicMath.format_formula([
                         "",
                         "x_2 = {" + "{}{}{}".format(-self.b, MathSymbols.fraction.value, self.a) + "}" + bfa,
@@ -434,27 +457,37 @@ class Poly2:
             formula = [
                 PublicMath.format_formula("{}x^2 = {}".format(self.a_str, -self.c))
             ]
-            mcfa = -self.c
+            # mcfa = -self.c
             if self.a != 1:
-                mcfa = "{" + "{}{}{}".format(-self.c, MathSymbols.fraction.value, self.a_str) + "}"
-                mcfasim = False
-                if int(-self.c / self.a) == -self.c / self.a:
-                    mcfa = int(-self.c / self.a)
-                    mcfasim = True
+                # mcfa = "{" + "{}{}{}".format(-self.c, MathSymbols.fraction.value, self.a_str) + "}"
+                # mcfasim = False
+                # if int(-self.c / self.a) == -self.c / self.a:
+                #     mcfa = int(-self.c / self.a)
+                #     mcfasim = True
                 formula.append(
                     PublicMath.format_formula(
+                        # "x^2 = {}".format(PublicMath.simplify_fraction())
                         "x^2 = {" + "{}{}{}".format(-self.c, MathSymbols.fraction.value, self.a_str) + "}" + (
-                            "= {}".format(mcfa) if mcfasim else ""))
+                            "= {}".format(PublicMath.simplify_fraction(-self.c,self.a)) if PublicMath.gcd(self.c, self.a)>1 else "")
+                    )
                 )
             if -self.c / self.a > 0:
+                post = None
                 formula.append(
                     PublicMath.format_formula(
-                        "x_1,x_2 = {}{}{}".format(MathSymbols.plum_minus.value, MathSymbols.radical.value, mcfa))
+                        "x_1,x_2 = {}{}{}".format(MathSymbols.plum_minus.value, MathSymbols.radical.value, PublicMath.simplify_fraction(-self.c,self.a)))
                 )
-                post = None
+                if PublicMath.is_int((-self.c/self.a)**.5):
+                    formula.append(
+                        PublicMath.format_formula(
+                            "x_1,x_2 = {}{}".format(MathSymbols.plum_minus.value,int((-self.c/self.a)**.5)))
+                    )
+                else:
+                    # TODO: Simplify radical
+                    pass
             else:
                 formula.append(
-                    PublicMath.format_formula("x^2 = {} < 0".format(mcfa))
+                    PublicMath.format_formula("x^2 = {} < 0".format(PublicMath.simplify_fraction(-self.c,self.a)))
                 )
                 post = EquationStates.impossible.value
             step = {
@@ -464,29 +497,85 @@ class Poly2:
                 step["post"] = post
             steps.append(step)
             return steps
+        gcd = PublicMath.gcd(self.a, self.b, self.c)
+        if self.a * self.c > 0 and PublicMath.is_int(abs(self.a / gcd) ** .5) and PublicMath.is_int(
+                abs(self.c / gcd) ** .5) and (
+                (self.b / gcd) / (2 * (abs(self.a / gcd) ** .5))) ** 2 == abs(self.c / gcd):
+            rc = int(abs(self.c) ** .5) if self.b > 0 else -int(abs(self.c) ** .5)
+            rc_str = "+ {}".format(rc) if rc > 0 else str(rc)
+            if self.a == 1:
+                steps.append({
+                    "pre": Poly2Decompose.num1U.value if self.b > 0 else Poly2Decompose.num1Um.value,
+                    "formula": [
+                        PublicMath.format_formula("(x {})^2 = 0".format(rc_str)),
+                        PublicMath.format_formula("x {} = 0".format(rc_str)),
+                        PublicMath.format_formula("x_1, x_2 = {}".format(-rc)),
+                    ],
+                })
+                return steps
+            elif self.a < 0:
+                steps.append({
+                    "pre": "طرفین معادله را در منفی ضرب می‌کنیم",
+                    "formula": [
+                        PublicMath.format_formula(
+                            "-({}x^2 {}x {}) = -0".format(self.a_str, self.b_str, self.c_str))
+                    ]
+                })
+                steps += Poly2(params={"coeffs": [-self.a, -self.b, -self.c]}).decompose_solver()
+                return steps
+            elif PublicMath.gcd(self.a, self.b, self.c) > 1:
+                steps.append({
+                    "pre": "از {} فاکتور می‌گیریم".format(gcd),
+                    "formula": [
+                        PublicMath.format_formula(
+                            "{}({}x^2 {}x {}) = 0".format(gcd, PublicMath.n2str(int(self.a / gcd), a=True),
+                                                          PublicMath.n2str(int(self.b / gcd)),
+                                                          PublicMath.n2str(int(self.c / gcd))))
+                    ]
+                })
+                steps += Poly2(
+                    params={"coeffs": [int(self.a / gcd), int(self.b / gcd), int(self.c / gcd)]}).decompose_solver()
+                return steps
+            else:
+                ra = int(self.a ** .5)
+                ra_str = PublicMath.n2str(ra, a=True)
+                steps.append({
+                    "pre": Poly2Decompose.num1U.value if self.b > 0 else Poly2Decompose.num1Um.value,
+                    "formula": [
+                        PublicMath.format_formula("({}x {})^2 = 0".format(ra_str, rc_str)),
+                        PublicMath.format_formula("{}x {} = 0".format(ra_str, rc_str)),
+                        PublicMath.format_formula("{}x = {}".format(ra_str, -rc)),
+                        PublicMath.format_formula(
+                            "x_1, x_2 = {" + "{}{}{}".format(-rc, MathSymbols.fraction.value, ra) + "}"),
+                        PublicMath.format_formula("x_1, x_2 = {}".format(PublicMath.simplify_fraction(-rc, ra)) if -rc*ra<0 else "")
+
+                    ],
+                })
+                return steps
+
         if analysis["delta"] not in [2, 3]:
             return []
-        if not self.a == 1:
+        if self.a < 0:
             steps.append({
-                "pre": Poly2Decompose.devide_a.value,
+                "pre": "طرفین معادله را در منفی ضرب می‌کنیم",
+                "formula": [
+                    PublicMath.format_formula(
+                        "-({}x^2 {}x {}) = -0".format(self.a_str, self.b_str, self.c_str))
+                ]
+            })
+            steps += Poly2(params={"coeffs": [-self.a, -self.b, -self.c]}).decompose_solver()
+            return steps
+
+        if not self.a == 1 and abs(self.a) == gcd:
+            steps.append({
+                "pre": "از {} فاکتور می‌گیریم".format(gcd),
                 "formula": PublicMath.format_formula(
-                    "{" + "{}x^2 {}x {} = 0 {} {}".format(self.a_str, self.b_str, self.c_str,
-                                                          MathSymbols.fraction.value, self.a) + "}",
+                    "{}({}x^2 {}x {}) = 0".format(gcd, PublicMath.n2str(int(self.a / gcd), a=True),
+                                                  PublicMath.n2str(int(self.b / gcd)),
+                                                  PublicMath.n2str(int(self.c / gcd))),
                 )
             })
             steps += Poly2(params={"coeffs": [1, int(self.b / self.a), int(self.c / self.a)]}).decompose_solver()
-            return steps
-        if (self.b / 2) ** 2 == self.c:
-            rc = int(self.c ** .5) if self.b > 0 else -int(self.c ** .5)
-            rc_str = "+ {}".format(rc) if rc > 0 else str(rc)
-            steps.append({
-                "pre": Poly2Decompose.num1U.value if self.b > 0 else Poly2Decompose.num1Um.value,
-                "formula": [
-                    PublicMath.format_formula("(x {})^2=0".format(rc_str)),
-                    PublicMath.format_formula("x {}=0".format(rc_str)),
-                    PublicMath.format_formula("x_1, x_2 = {}".format(-rc)),
-                ],
-            })
             return steps
         steps.append({
             "pre": Poly2Decompose.looking.value.format(self.b, self.c)
